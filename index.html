@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>İyi ki Doğdun!</title>
+  <link rel="stylesheet" href="style.css">
+  
+</head>
+<body>
+
+<div id="scene">
+  <canvas id="confetti-canvas"></canvas>
+  <svg id="stars" viewBox="0 0 480 600" preserveAspectRatio="xMidYMid slice"></svg>
+
+  <div id="cake-wrapper">
+    <div id="candles-row">
+      <div class="candle"><div class="flame"></div><div class="candle-body"></div></div>
+      <div class="candle"><div class="flame"></div><div class="candle-body"></div></div>
+      <div class="candle"><div class="flame"></div><div class="candle-body"></div></div>
+      <div class="candle"><div class="flame"></div><div class="candle-body"></div></div>
+      <div class="candle"><div class="flame"></div><div class="candle-body"></div></div>
+    </div>
+
+    <div class="cake-layer layer-top" id="l1">
+      <div class="frosting">
+        <div class="drip"></div><div class="drip"></div><div class="drip"></div>
+        <div class="drip"></div><div class="drip"></div>
+      </div>
+      <div class="layer-deco">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>
+
+    <div class="cake-layer layer-mid" id="l2">
+      <div class="frosting">
+        <div class="drip"></div><div class="drip"></div><div class="drip"></div>
+        <div class="drip"></div><div class="drip"></div><div class="drip"></div>
+        <div class="drip"></div>
+      </div>
+      <div class="layer-deco">
+        <div class="dot"></div><div class="dot"></div>
+        <div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>
+
+    <div class="cake-layer layer-bot" id="l3">
+      <div class="frosting">
+        <div class="drip"></div><div class="drip"></div><div class="drip"></div>
+        <div class="drip"></div><div class="drip"></div><div class="drip"></div>
+        <div class="drip"></div><div class="drip"></div><div class="drip"></div>
+      </div>
+      <div class="layer-deco">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>
+
+    <div class="layer-plate" id="plate"></div>
+  </div>
+
+  <div id="message-box">
+    <div id="big-text">İyi ki doğdun canım benim</div>
+    <div id="cake">🎂🎂🎂</div>
+    <div id="sub-text"># 🌸</div>
+    <div id="hearts">
+      <span class="heart">♥</span>
+      <span class="heart">♥</span>
+      <span class="heart">♥</span>
+    </div>
+  </div>
+
+  <button id="replay-btn" onclick="startAnimation()">Tekrar oynat ✨</button>
+</div>
+
+<script>
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx    = canvas.getContext('2d');
+  let pieces   = [];
+  let rafId    = null;
+
+  function resizeCanvas() {
+    const scene   = document.getElementById('scene');
+    canvas.width  = scene.offsetWidth;
+    canvas.height = scene.offsetHeight;
+  }
+
+  function spawnConfetti() {
+    pieces = [];
+    const colors = [
+      '#ff7eb3','#ffd166','#a8d8ea','#95e1d3',
+      '#f38181','#c3b1e1','#ffe4e1','#fff0a0'
+    ];
+    for (let i = 0; i < 130; i++) {
+      pieces.push({
+        x:     Math.random() * canvas.width,
+        y:     -10 - Math.random() * 100,
+        w:     6  + Math.random() * 8,
+        h:     4  + Math.random() * 6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vx:    (Math.random() - 0.5) * 3,
+        vy:    2  + Math.random() * 3,
+        rot:   Math.random() * 360,
+        rotV:  (Math.random() - 0.5) * 6,
+        alpha: 1
+      });
+    }
+    animateConfetti();
+  }
+
+  function animateConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+    pieces.forEach(p => {
+      p.x   += p.vx;
+      p.y   += p.vy;
+      p.rot += p.rotV;
+      if (p.y > canvas.height * 0.7) p.alpha -= 0.015;
+      if (p.alpha > 0) alive = true;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+    if (alive) {
+      rafId = requestAnimationFrame(animateConfetti);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  function initStars() {
+    const svg = document.getElementById('stars');
+    const styleEl = document.createElement('style');
+    styleEl.textContent = `
+      @keyframes twinkle {
+        0%   { opacity: 0.1; }
+        100% { opacity: 0.9; }
+      }
+    `;
+    document.head.appendChild(styleEl);
+    for (let i = 0; i < 70; i++) {
+      const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      c.setAttribute('cx', Math.random() * 480);
+      c.setAttribute('cy', Math.random() * 600);
+      c.setAttribute('r',  (Math.random() * 1.5 + 0.3).toFixed(2));
+      c.setAttribute('fill', 'white');
+      c.style.animation = `twinkle ${(1 + Math.random() * 2).toFixed(1)}s ease-in-out ${(Math.random() * 2).toFixed(1)}s infinite alternate`;
+      svg.appendChild(c);
+    }
+  }
+
+  function addSparkle(x, y, emoji) {
+    const el = document.createElement('div');
+    el.className   = 'sparkle';
+    el.textContent = emoji;
+    el.style.left  = x + 'px';
+    el.style.top   = y + 'px';
+    document.getElementById('scene').appendChild(el);
+    setTimeout(() => el.remove(), 1600);
+  }
+
+  function getRelPos(el) {
+    const er = el.getBoundingClientRect();
+    const sr = document.getElementById('scene').getBoundingClientRect();
+    return { x: er.left - sr.left, y: er.top - sr.top, w: er.width };
+  }
+
+  function startAnimation() {
+    const ids = ['l1','l2','l3','plate','candles-row','message-box','replay-btn'];
+    ids.forEach(id => document.getElementById(id).classList.remove('show'));
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (rafId) cancelAnimationFrame(rafId);
+
+    setTimeout(() => document.getElementById('plate').classList.add('show'), 200);
+
+    setTimeout(() => {
+      const l3 = document.getElementById('l3');
+      l3.classList.add('show');
+      const p = getRelPos(l3);
+      addSparkle(p.x + 20,       p.y, '✨');
+      addSparkle(p.x + p.w - 30, p.y, '⭐');
+    }, 600);
+
+    setTimeout(() => {
+      const l2 = document.getElementById('l2');
+      l2.classList.add('show');
+      const p = getRelPos(l2);
+      addSparkle(p.x + 10, p.y, '💫');
+    }, 1200);
+
+    setTimeout(() => {
+      const l1 = document.getElementById('l1');
+      l1.classList.add('show');
+      const p = getRelPos(l1);
+      addSparkle(p.x + p.w - 20, p.y, '🌟');
+    }, 1800);
+
+    setTimeout(() => document.getElementById('candles-row').classList.add('show'), 2400);
+
+    setTimeout(() => {
+      document.getElementById('message-box').classList.add('show');
+      spawnConfetti();
+    }, 3000);
+
+    setTimeout(() => document.getElementById('replay-btn').classList.add('show'), 4200);
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  initStars();
+  setTimeout(startAnimation, 400);
+</script>
+</body>
+</html>
